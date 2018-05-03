@@ -5,11 +5,11 @@ const pluralize = require('pluralize');
 const Table = require('easy-table');
 let numAvailable;
 let price;
+
+//abstracts away about 22 characters from the 1-second timeout function.
 function waitASec(fx) {
     setTimeout(function () { fx() }, 1000);
 }
-
-
 
 const connection = mysql.createConnection({
     host: "localhost",
@@ -75,8 +75,7 @@ function managerChoices() {
 
 //views all products in a table
 function viewProducts() {
-    console.log('all products.');
-    connection.query(`SELECT item_id, product_name, price, stock_quantity FROM products`, function (err, res) {
+    connection.query(`SELECT product_id, product_name, price, stock_quantity FROM products`, function (err, res) {
         let data = [];
         res.forEach(i => data.push(i));
         let t = new Table;
@@ -94,7 +93,7 @@ function viewProducts() {
 
 //shows all inventory items with an inventory < 5
 function lowInventory() {
-    connection.query(`SELECT item_id, product_name, stock_quantity FROM products`, function (err, res) {
+    connection.query(`SELECT product_id, product_name, stock_quantity FROM products`, function (err, res) {
         let data = [];
         res.forEach(i => {
             if (i.stock_quantity < 5) { data.push(i) };
@@ -114,7 +113,7 @@ function lowInventory() {
 //increases (or decreases) stock quantity of an item
 function addInventory() {
     let inv = [];
-    connection.query(`SELECT item_id, product_name FROM products`, function (err, res) {
+    connection.query(`SELECT product_id, product_name FROM products`, function (err, res) {
         res.forEach(i => {
             inv.push(i.product_name)
         })
@@ -174,7 +173,7 @@ function addNewProduct() {
         }
     ])
         .then(res => {
-            connection.query(`INSERT INTO products (product_name, price, department_name, stock_quantity) VALUE('${res.name}','${res.price}','${res.department}','${res.quantity}')`);
+            connection.query(`INSERT INTO products (product_name, price, department_name, stock_quantity, backorder, product_sales) VALUE('${res.name}','${res.price}','${res.department}','${res.quantity}', 0, 0)`);
             console.log(`You have successfully added ${res.quantity} ${pluralize(res.name)} to the inventory of the ${res.department} department!`);
             waitASec(managerChoices);
         })

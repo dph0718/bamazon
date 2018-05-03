@@ -48,7 +48,7 @@ function productsDisp() {
                     price = res[0].price;
                     let upperChoice = choice.replace(/^\w/, function (chr) {
                         return chr.toUpperCase();
-                      });
+                    });
                     console.log(`${pluralize(upperChoice)} cost $${price} per unit.`);
                     purchase();
                 })
@@ -69,7 +69,6 @@ function purchase() {
             }
             else productsDisp();
         })
-
 }
 
 //user sets quantity. sanitizes input. & calls checkQuantity.
@@ -113,7 +112,6 @@ function checkQuantity() {
                 } else {
                     specQuantity();
                 }
-
             })
         }
     })
@@ -162,7 +160,6 @@ function reqBackOrder(y) {
 
     })
     confirmQuant();
-
 };
 
 function changeOrExit() {
@@ -191,8 +188,10 @@ function confirmQuant() {
     } else {
         connection.query(`UPDATE products SET stock_quantity = 0 WHERE product_name = "${choice}"`);
     }
+
     connection.query(`SELECT stock_quantity FROM products WHERE product_name = "${choice}"`, function (err, r) {
-        console.log(`Your order of ${custQuant} ${pluralize(choice)} has been placed! There are ${r[0].stock_quantity} ${pluralize(choice)} left in stock.`)
+        updateSales();
+        console.log(`Your order of ${custQuant} ${pluralize(choice)} has been placed!\nThere are ${r[0].stock_quantity} ${pluralize(choice)} left in stock.`)
         inquirer.prompt({
             name: 'another',
             message: 'Would you like to place another order?',
@@ -206,5 +205,16 @@ function confirmQuant() {
                     setTimeout(function () { process.exit() }, 1200);
                 }
             })
-    })
+    });
+};
+
+//updates the sales_total for the product
+function updateSales() {
+    let addedSales;
+    let curSales;
+    connection.query(`SELECT product_sales FROM products WHERE product_name = "${choice}"`, function (err, r) {
+        addedSales = custQuant * price;
+        curSales = r[0].product_sales;
+        connection.query(`UPDATE products SET product_sales = ${curSales + addedSales} WHERE product_name = "${choice}"`);
+    });
 };
